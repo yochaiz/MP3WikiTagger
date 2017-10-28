@@ -44,10 +44,15 @@ class SongInfo:
     def __findYear(self):
         for tr in self.xmlRoot:
             th = tr.find(".//th")
-            if (th is not None) and (th.text == "Released"):
-                date = tr.find(".//td")
-                if date is not None:
-                    return date.text[-4:]
+            if th is not None:
+                if th.text == "Recorded":
+                    date = tr.find(".//td")
+                    if date is not None:
+                        return date.text
+                elif th.text == "Released":
+                    date = tr.find(".//td")
+                    if date is not None:
+                        return date.text[-4:]
 
         return ''
 

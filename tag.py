@@ -42,7 +42,9 @@ for i, fname in enumerate(os.listdir(args.folderName)):
         tag.title = unicode(song.getTitle())
         tag.album = unicode(song.getAlbum())
         tag.genre = unicode(song.getGenre())
-        tag.recording_date = Date(int(song.getYear()))
+
+        if song.getYear().isdigit():
+            tag.recording_date = Date(int(song.getYear()))
 
         # update image
         # remove existing images
