@@ -7,21 +7,27 @@ class SongInfo:
     def __init__(self, songName):
         wikipedia.set_lang("en")
         self.wikiObj = wikipedia.page(songName)
-        self.picture = self.__findPicture()
 
         resp = requests.get(self.wikiObj.url)
         self.xmlRoot = ElementTree.fromstring(resp.content)
         self.xmlRoot = self.xmlRoot.find(".//table[@class='infobox vevent']")
         del resp
 
+        self.imageURL = self.__findImageURL()
         self.album = self.__findAlbum()
         self.title = self.__findTitle()
         self.artist = self.__findArtist()
         self.year = self.__findYear()
         self.genre = self.__findGenre()
 
-    def __findPicture(self):
-        return self.wikiObj.images[0]
+    def __findImageURL(self):
+        img = self.xmlRoot.find(".//a[@class='image']")
+        if (img is not None) and (len(img._children) > 0):
+            img = img.find(".//img")
+            if img is not None:
+                return 'http://{}'.format(img.attrib['src'][2:])
+
+        return None
 
     def __findGenre(self):
         for tr in self.xmlRoot:
@@ -85,8 +91,8 @@ class SongInfo:
 
         return ''
 
-    def getPicture(self):
-        return self.picture
+    def getImageURL(self):
+        return self.imageURL
 
     def getAlbum(self):
         return self.album
