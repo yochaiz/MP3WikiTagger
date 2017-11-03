@@ -89,10 +89,13 @@ class SongInfo:
             for trChild in tr._children:
                 if 'from the album ' == trChild.text:
                     for thChild in trChild._children:
-                        if (thChild.tag == 'i') and (len(thChild._children) > 0):
-                            albumElement = thChild._children[0]
-                            album = albumElement.text
-                            return album
+                        if (thChild.tag == 'i'):
+                            if len(thChild._children) > 0:
+                                albumElement = thChild._children[0]
+                                album = albumElement.text
+                                return album
+                            elif thChild.text is not None:
+                                return thChild.text
 
         return ''
 

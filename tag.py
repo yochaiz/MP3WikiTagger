@@ -55,7 +55,7 @@ for i, fname in enumerate(os.listdir(args.folderName)):
         imgData = urllib.urlopen(song.getImageURL()).read()
         tag.images.set(ImageFrame.FRONT_COVER, imgData, "image/jpeg")
 
-        tag.save('{}/{}'.format(args.folderName, fname), version=ID3_DEFAULT_VERSION)
+        tag.save('{}/{}'.format(args.folderName, fname), version=ID3_DEFAULT_VERSION, encoding='utf-8')
 
         if i % nFilesPerPercent == 0:
             percent += percentIncrement
