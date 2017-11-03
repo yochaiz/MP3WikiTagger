@@ -1,6 +1,7 @@
 import argparse
 import os
-from SongInfo import SongInfo
+# from SongInfo import SongInfo
+from HebrewSongInfo import HebrewSongInfo
 from eyed3 import id3
 from eyed3.id3.frames import ImageFrame
 from eyed3.id3 import ID3_DEFAULT_VERSION
@@ -34,7 +35,7 @@ for i, fname in enumerate(os.listdir(args.folderName)):
         sys.stdout.write('Progress: [%-20s] %d%%    File:[%s]' % (progress, percent, fname))
         sys.stdout.flush()
 
-        song = SongInfo(fname[:-len(fileTypeSuffix)])
+        song = HebrewSongInfo(fname[:-len(fileTypeSuffix)])
         tag = id3.Tag()
         tag.parse('{}/{}'.format(args.folderName, fname))
         tag.artist = unicode(song.getArtist())
@@ -42,6 +43,10 @@ for i, fname in enumerate(os.listdir(args.folderName)):
         tag.title = unicode(song.getTitle())
         tag.album = unicode(song.getAlbum())
         tag.genre = unicode(song.getGenre())
+
+        # remove comments
+        for c in tag.comments:
+            tag.comments.remove(c.description)
 
         if song.getYear().isdigit():
             tag.recording_date = Date(int(song.getYear()))
@@ -52,8 +57,10 @@ for i, fname in enumerate(os.listdir(args.folderName)):
             tag.images.remove(img.description)
 
         # set new image
-        imgData = urllib.urlopen(song.getImageURL()).read()
-        tag.images.set(ImageFrame.FRONT_COVER, imgData, "image/jpeg")
+        imgURL = song.getImageURL()
+        if imgURL is not None:
+            imgData = urllib.urlopen(imgURL).read()
+            tag.images.set(ImageFrame.FRONT_COVER, imgData, "image/jpeg")
 
         tag.save('{}/{}'.format(args.folderName, fname), version=ID3_DEFAULT_VERSION, encoding='utf-8')
 
