@@ -1,103 +1,66 @@
-import wikipedia
-import requests
-from xml.etree import ElementTree
+# -*- coding: utf-8 -*-
+from abc import ABCMeta, abstractmethod
+from googleapiclient.discovery import build
 
 
 class SongInfo:
-    def __init__(self, songName):
-        wikipedia.set_lang("en")
-        self.wikiObj = wikipedia.page(songName)
+    __metaclass__ = ABCMeta
 
-        resp = requests.get(self.wikiObj.url)
-        self.xmlRoot = ElementTree.fromstring(resp.content)
-        self.xmlRoot = self.xmlRoot.find(".//table[@class='infobox vevent']")
-        del resp
+    API_SERVICE_NAME = 'youtube'
+    API_VERSION = 'v3'
+    DEVELOPER_KEY = 'AIzaSyAizLaFmMUZe-EJJQ7JQ6LoyRFnVQbHS-M'
 
-        self.imageURL = self.__findImageURL()
-        self.album = self.__findAlbum()
-        self.title = self.__findTitle()
-        self.artist = self.__findArtist()
-        self.year = self.__findYear()
-        self.genre = self.__findGenre()
+    ENCODING = 'UTF-8'
 
-    def __findImageURL(self):
-        img = self.xmlRoot.find(".//a[@class='image']")
-        if (img is not None) and (len(img._children) > 0):
-            img = img.find(".//img")
-            if img is not None:
-                return 'http://{}'.format(img.attrib['src'][2:])
+    def __init__(self):
+        self.youtube = build(self.API_SERVICE_NAME, self.API_VERSION, developerKey=self.DEVELOPER_KEY)
+
+        self.artist = self.findArtist()
+        self.title = self.findTitle()
+        self.album = self.findAlbum()
+        self.year = self.findYear()
+        self.genre = self.findGenre()
+        self.imageURL = self.findImageURL()
+
+    def findYoutubeImageURL(self):
+        search_response = self.youtube.search().list(
+            type='video',
+            q='{} - {}'.format(self.artist.encode(self.ENCODING), self.title.encode(self.ENCODING)),
+            part='snippet',
+            maxResults=1
+        ).execute()
+
+        for item in search_response['items']:
+            if (self.year is None) or (self.year == ''):
+                self.year = item['snippet']['publishedAt'][0:4]
+
+            return item['snippet']['thumbnails']['high']['url']
 
         return None
 
-    def __findGenre(self):
-        for tr in self.xmlRoot:
-            th = tr.find(".//th/a")
-            if (th is not None) and (th.text == "Genre"):
-                genre = tr.find(".//td")
-                while len(genre._children) > 0:
-                    genre = genre._children[0]
+    @abstractmethod
+    def findImageURL(self):
+        return NotImplemented
 
-                return genre.text
+    @abstractmethod
+    def findAlbum(self):
+        return NotImplemented
 
-        return ''
+    @abstractmethod
+    def findArtist(self):
+        return NotImplemented
 
-    def __findYear(self):
-        for tr in self.xmlRoot:
-            th = tr.find(".//th")
-            if th is not None:
-                if th.text == "Recorded":
-                    date = tr.find(".//td")
-                    if date is not None:
-                        return date.text
-                elif th.text == "Released":
-                    date = tr.find(".//td")
-                    if date is not None:
-                        return date.text[-4:]
+    @abstractmethod
+    def findTitle(self):
+        return NotImplemented
 
-        return ''
+    @abstractmethod
+    def findYear(self):
+        return NotImplemented
 
-    def __findTitle(self):
-        if len(self.xmlRoot._children) > 0:
-            titleTr = self.xmlRoot._children[0]
-            if len(titleTr._children) > 0:
-                titleTh = titleTr._children[0]
-                title = titleTh.text
-                title = title.replace('"', '')
-                return title
-
-        return ''
-
-    def __findArtist(self):
-        if len(self.xmlRoot._children) >= 3:
-            artistTr = self.xmlRoot._children[2]
-            if len(artistTr._children) > 0:
-                artistTh = artistTr._children[0]
-                artistStr = ''
-                for i in range(1, len(artistTh._children)):
-                    artist = artistTh._children[i]
-                    artistStr += artist.text
-                    if artist.tail is not None:
-                        artistStr += artist.tail
-
-                return artistStr
-
-        return ''
-
-    def __findAlbum(self):
-        trDesc = self.xmlRoot.findall(".//tr[@class='description']")
-        for tr in trDesc:
-            for trChild in tr._children:
-                if 'from the album ' == trChild.text:
-                    for thChild in trChild._children:
-                        if (thChild.tag == 'i'):
-                            if len(thChild._children) > 0:
-                                albumElement = thChild._children[0]
-                                album = albumElement.text
-                                return album
-                            elif thChild.text is not None:
-                                return thChild.text
-
-        return ''
+    @abstractmethod
+    def findGenre(self):
+        return NotImplemented
 
     def getImageURL(self):
         return self.imageURL

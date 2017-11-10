@@ -1,10 +1,13 @@
-# coding=UTF-8
+# -*- coding: utf-8 -*-
+from SongInfo import SongInfo
 import requests
 from xml.etree import ElementTree
 from lxml import etree
 
 
-class HebrewSongInfo:
+class HebrewSongInfo(SongInfo):
+    ENCODING = 'UTF-8'
+
     def __init__(self, songFname):
         idx = songFname.find('-')
         songName = songFname[idx + 1:].lstrip()
@@ -13,17 +16,16 @@ class HebrewSongInfo:
         artistName = None
         if idx >= 0:
             artistName = songFname[:idx].rstrip()
-            artistName = artistName.decode('UTF-8')
+            artistName = artistName.decode(self.ENCODING)
 
-        self.xmlElement, self.imageElement, findAlbumFunc = self.__findXmlElement(songNameForURL, artistName)
+        self.artist = artistName
 
-        self.artist = self.__findArtist()
-        self.album = findAlbumFunc()
-        self.title = unicode(songName.decode('UTF-8'))
-        self.title = self.__findTitle()
-        self.year = self.__findYear()
-        self.genre = self.__findGenre()
-        self.imageURL = self.__findImageURL()
+        self.xmlElement, self.imageElement, self.findAlbumFunc = self.__findXmlElement(songNameForURL, artistName)
+
+        self.title = unicode(songName.decode(self.ENCODING))
+        self.artistsList = []
+
+        SongInfo.__init__(self)
 
     def __loadXML(self, url):
         resp = requests.get(url)
@@ -47,7 +49,7 @@ class HebrewSongInfo:
 
             for a in artists:
                 artistsList.append(a.text)
-                print(a.text)
+                # print(a.text)
 
             if artistName is not None:
                 if artistName in artistsList:
@@ -61,90 +63,93 @@ class HebrewSongInfo:
         return optimalElement, imageElement
 
     def __findXmlElement(self, songName, artistName):
-        url = 'http://www.disccenter.co.il/list?genre=&format=&langs=&search={}&type=0&kind=-1'.format(songName)
+        url = 'http://www.disccenter.co.il/list?genre=&format=&langs=&search={}&type=0&kind=1'.format(songName)
         xmlElement, imageElement = self.__searchElement(url, artistName)
-        albumFunc = self.__findAlbumType1
+        albumFunc = self.__findAlbumType2
 
         if xmlElement is None:
-            url = 'http://www.disccenter.co.il/list?genre=&format=&langs=&search={}&type=0&kind=1'.format(songName)
+            url = 'http://www.disccenter.co.il/list?genre=&format=&langs=&search={}&type=0&kind=-1'.format(songName)
             xmlElement, imageElement = self.__searchElement(url, artistName)
-            albumFunc = self.__findAlbumType2
+            albumFunc = self.__findAlbumType1
 
         return xmlElement, imageElement, albumFunc
 
-    def __findArtist(self):
+    def findArtist(self):
         if len(self.artistsList) > 0:
             artist = self.artistsList[0]
             del self.artistsList[0]
             return artist
 
+        return '' if self.artist is None else self.artist
+
     def __findAlbumType1(self):
-        node = self.xmlElement.find(".//p/strong/a")
-        if node is not None:
-            return node.text
-
-        return ''
-
-    def __findAlbumType2(self):
-        node = self.xmlElement.find(".//p/strong/a")
-        if (node is not None) and (node.attrib['href'] is not None):
-            xmlRoot = self.__loadXML(unicode('http://www.disccenter.co.il') + node.attrib['href'])
-            node = xmlRoot.find(".//div[@class='product-info-top']/p/h1/strong")
+        if self.xmlElement is not None:
+            node = self.xmlElement.find(".//p/strong/a")
             if node is not None:
                 return node.text
 
         return ''
 
-    def __findTitle(self):
+    def __findAlbumType2(self):
+        if self.xmlElement is not None:
+            node = self.xmlElement.find(".//p/strong/a")
+            if (node is not None) and (node.attrib['href'] is not None):
+                xmlRoot = self.__loadXML(unicode('http://www.disccenter.co.il') + node.attrib['href'])
+                node = xmlRoot.find(".//div[@class='product-info-top']/p/h1/strong")
+                if node is not None:
+                    return node.text
+
+        return ''
+
+    def findAlbum(self):
+        value = self.findAlbumFunc()
+        if value == '':
+            value = self.artist
+            value += ' - סינגל'.decode(self.ENCODING)
+
+        return value
+
+    def findTitle(self):
         title = self.title
         if len(self.artistsList) > 0:
-            title += ' (עם '.decode('UTF-8')
+            title += ' (עם '.decode(self.ENCODING)
             while len(self.artistsList) > 1:
-                title += self.artistsList[0] + ' & '.decode('UTF-8')
+                title += self.artistsList[0] + ' & '.decode(self.ENCODING)
                 del self.artistsList[0]
 
             title += self.artistsList[0]
             del self.artistsList[0]
 
-            title += ')'.decode('UTF-8')
+            title += ')'.decode(self.ENCODING)
 
         return title
 
-    def __findYear(self):
-        span = self.xmlElement.findall(".//p/span")
-        for sp in span:
-            if (sp.text is not None) and ('תאריך יציאה'.decode('UTF-8') in sp.text):
-                return sp.text[-4:]
+    def findYear(self):
+        if self.xmlElement is not None:
+            span = self.xmlElement.findall(".//p/span")
+            for sp in span:
+                if (sp.text is not None) and ('תאריך יציאה'.decode(self.ENCODING) in sp.text):
+                    return sp.text[-4:]
 
         return ''
 
-    def __findGenre(self):
-        paragraphs = self.xmlElement.findall(".//p")
-        for p in paragraphs:
-            if (p.text is not None) and ('סגנון'.decode('UTF-8') in p.text):
-                aElements = p.findall(".//a")
-                for a in aElements:
-                    if (a.text is not None) and (a.text != 'מוסיקה ישראלית'.decode('UTF-8')):
-                        return a.text
+    def findGenre(self):
+        if self.xmlElement is not None:
+            paragraphs = self.xmlElement.findall(".//p")
+            for p in paragraphs:
+                if (p.text is not None) and ('סגנון'.decode(self.ENCODING) in p.text):
+                    aElements = p.findall(".//a")
+                    for a in aElements:
+                        if (a.text is not None) and (a.text != 'מוסיקה ישראלית'.decode(self.ENCODING)):
+                            return a.text
+
         return ''
 
-    def __findImageURL(self):
-        return 'http://www.disccenter.co.il{}'.format(self.imageElement.attrib['src'])
+    def findImageURL(self):
+        url = self.findYoutubeImageURL()
+        if url is not None:
+            return url
+        elif self.imageElement is not None:
+            return 'http://www.disccenter.co.il{}'.format(self.imageElement.attrib['src'])
 
-    def getImageURL(self):
-        return self.imageURL
-
-    def getAlbum(self):
-        return self.album
-
-    def getTitle(self):
-        return self.title
-
-    def getArtist(self):
-        return self.artist
-
-    def getYear(self):
-        return self.year
-
-    def getGenre(self):
-        return self.genre
+        return ''

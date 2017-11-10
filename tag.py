@@ -1,13 +1,18 @@
+# -*- coding: utf-8 -*-
 import argparse
 import os
-# from SongInfo import SongInfo
 from HebrewSongInfo import HebrewSongInfo
+from EnglishSongInfo import EnglishSongInfo
 from eyed3 import id3
 from eyed3.id3.frames import ImageFrame
 from eyed3.id3 import ID3_DEFAULT_VERSION
 from eyed3.core import Date
 import urllib
 import sys
+
+def is_ascii(s):
+    return all(ord(c) < 128 for c in s)
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("folderName", type=str, help="Folder name where MP3 files are")
@@ -35,7 +40,12 @@ for i, fname in enumerate(os.listdir(args.folderName)):
         sys.stdout.write('Progress: [%-20s] %d%%    File:[%s]' % (progress, percent, fname))
         sys.stdout.flush()
 
-        song = HebrewSongInfo(fname[:-len(fileTypeSuffix)])
+        songName = fname[:-len(fileTypeSuffix)]
+        if is_ascii(songName):
+            song = EnglishSongInfo(songName)
+        else:
+            song = HebrewSongInfo(songName)
+
         tag = id3.Tag()
         tag.parse('{}/{}'.format(args.folderName, fname))
         tag.artist = unicode(song.getArtist())
