@@ -3,6 +3,7 @@ from SongInfo import SongInfo
 import requests
 from xml.etree import ElementTree
 from lxml import etree
+from random import randint
 
 
 class HebrewSongInfo(SongInfo):
@@ -41,7 +42,7 @@ class HebrewSongInfo(SongInfo):
         optimalElement = None
         imageElement = None
 
-        elements = xmlRoot.findall(".//section[@class='entries cf']/section")
+        elements = xmlRoot.findall(".//section[@class='result-entry cf ']")
         for e in elements:
             artistsList = []
             info = e.find(".//div[@class='result-info right']")
@@ -63,12 +64,14 @@ class HebrewSongInfo(SongInfo):
         return optimalElement, imageElement
 
     def __findXmlElement(self, songName, artistName):
-        url = 'http://www.disccenter.co.il/list?genre=&format=&langs=&search={}&type=0&kind=1'.format(songName)
+        url = 'http://www.disccenter.co.il/list?genre=&format=&langs=&search={}&type=0&kind=1&items=100'.format(
+            songName)
         xmlElement, imageElement = self.__searchElement(url, artistName)
         albumFunc = self.__findAlbumType2
 
         if xmlElement is None:
-            url = 'http://www.disccenter.co.il/list?genre=&format=&langs=&search={}&type=0&kind=-1'.format(songName)
+            url = 'http://www.disccenter.co.il/list?genre=&format=&langs=&search={}&type=0&kind=-1&items=100'.format(
+                songName)
             xmlElement, imageElement = self.__searchElement(url, artistName)
             albumFunc = self.__findAlbumType1
 
@@ -106,6 +109,8 @@ class HebrewSongInfo(SongInfo):
         if value == '':
             value = self.artist
             value += ' - סינגל'.decode(self.ENCODING)
+
+        value += unichr(randint(1, 31))
 
         return value
 

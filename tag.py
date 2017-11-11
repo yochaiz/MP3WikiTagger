@@ -10,6 +10,7 @@ from eyed3.core import Date
 import urllib
 import sys
 
+
 def is_ascii(s):
     return all(ord(c) < 128 for c in s)
 
@@ -48,6 +49,7 @@ for i, fname in enumerate(os.listdir(args.folderName)):
 
         tag = id3.Tag()
         tag.parse('{}/{}'.format(args.folderName, fname))
+
         tag.artist = unicode(song.getArtist())
         tag.album_artist = unicode(song.getArtist())
         tag.title = unicode(song.getTitle())
@@ -57,6 +59,10 @@ for i, fname in enumerate(os.listdir(args.folderName)):
         # remove comments
         for c in tag.comments:
             tag.comments.remove(c.description)
+
+        if 'IPLS' in tag.frame_set:
+            while len(tag.frame_set['IPLS']) > 0:
+                del tag.frame_set['IPLS'][0]
 
         if song.getYear().isdigit():
             tag.recording_date = Date(int(song.getYear()))
