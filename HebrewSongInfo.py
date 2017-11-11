@@ -110,7 +110,7 @@ class HebrewSongInfo(SongInfo):
             value = self.artist
             value += ' - סינגל'.decode(self.ENCODING)
 
-        value += unichr(randint(1, 31))
+        # value += unichr(randint(1, 31))
 
         return value
 
