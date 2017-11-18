@@ -16,16 +16,16 @@ class EnglishSongInfo(SongInfo):
 
         SongInfo.__init__(self)
 
-    def __findImageURL(self):
+    def findImageURL(self):
         img = self.xmlRoot.find(".//a[@class='image']")
         if (img is not None) and (len(img._children) > 0):
             img = img.find(".//img")
             if img is not None:
                 return 'http://{}'.format(img.attrib['src'][2:])
 
-        return None
+        return self.findYoutubeImageURL()
 
-    def __findGenre(self):
+    def findGenre(self):
         for tr in self.xmlRoot:
             th = tr.find(".//th/a")
             if (th is not None) and (th.text == "Genre"):
@@ -37,7 +37,7 @@ class EnglishSongInfo(SongInfo):
 
         return ''
 
-    def __findYear(self):
+    def findYear(self):
         for tr in self.xmlRoot:
             th = tr.find(".//th")
             if th is not None:
@@ -52,7 +52,7 @@ class EnglishSongInfo(SongInfo):
 
         return ''
 
-    def __findTitle(self):
+    def findTitle(self):
         if len(self.xmlRoot._children) > 0:
             titleTr = self.xmlRoot._children[0]
             if len(titleTr._children) > 0:
@@ -63,7 +63,7 @@ class EnglishSongInfo(SongInfo):
 
         return ''
 
-    def __findArtist(self):
+    def findArtist(self):
         if len(self.xmlRoot._children) >= 3:
             artistTr = self.xmlRoot._children[2]
             if len(artistTr._children) > 0:
@@ -79,7 +79,7 @@ class EnglishSongInfo(SongInfo):
 
         return ''
 
-    def __findAlbum(self):
+    def findAlbum(self):
         trDesc = self.xmlRoot.findall(".//tr[@class='description']")
         for tr in trDesc:
             for trChild in tr._children:
@@ -93,4 +93,4 @@ class EnglishSongInfo(SongInfo):
                             elif thChild.text is not None:
                                 return thChild.text
 
-        return ''
+        return '{} - Single'.format(self.artist)

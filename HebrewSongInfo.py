@@ -157,4 +157,4 @@ class HebrewSongInfo(SongInfo):
         elif self.imageElement is not None:
             return 'http://www.disccenter.co.il{}'.format(self.imageElement.attrib['src'])
 
-        return ''
+        return None
