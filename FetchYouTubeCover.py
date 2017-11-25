@@ -10,6 +10,7 @@ from eyed3.core import Date
 
 parser = argparse.ArgumentParser()
 parser.add_argument("folderName", type=str, help="Folder name where MP3 files are")
+parser.add_argument("--missing", action="store_true", help="Fetch only for MP3 without cover")
 args = parser.parse_args()
 
 fileTypeSuffix = '.mp3'
@@ -46,31 +47,35 @@ for i, fname in enumerate(os.listdir(args.folderName)):
         tag = id3.Tag()
         tag.parse('{}/{}'.format(args.folderName, fname))
 
-        search_response = youtube.search().list(
-            type='video',
-            q='{} - {}'.format(tag.artist.encode(ENCODING), tag.title.encode(ENCODING)),
-            part='snippet',
-            maxResults=1
-        ).execute()
+        fetchFlag = (args.missing is True) and (len(tag.images) == 0)
+        fetchFlag = fetchFlag or (args.missing is False)
 
-        imgURL = None
-        for item in search_response['items']:
-            if (tag.recording_date is None) or (tag.recording_date == ''):
-                year = item['snippet']['publishedAt'][0:4]
-                tag.recording_date = Date(int(year))
+        if fetchFlag is True:
+            search_response = youtube.search().list(
+                type='video',
+                q='{} - {}'.format(tag.artist.encode(ENCODING), tag.title.encode(ENCODING)),
+                part='snippet',
+                maxResults=1
+            ).execute()
 
-            imgURL = item['snippet']['thumbnails']['high']['url']
+            imgURL = None
+            for item in search_response['items']:
+                if (tag.recording_date is None) or (tag.recording_date == ''):
+                    year = item['snippet']['publishedAt'][0:4]
+                    tag.recording_date = Date(int(year))
 
-        if imgURL is not None:
-            # update image
-            # remove existing images
-            for img in tag.images:
-                tag.images.remove(img.description)
+                imgURL = item['snippet']['thumbnails']['high']['url']
 
-            imgData = urllib.urlopen(imgURL).read()
-            tag.images.set(ImageFrame.FRONT_COVER, imgData, "image/jpeg")
+            if imgURL is not None:
+                # update image
+                # remove existing images
+                for img in tag.images:
+                    tag.images.remove(img.description)
 
-            tag.save('{}/{}'.format(args.folderName, fname), version=ID3_DEFAULT_VERSION, encoding=ENCODING.lower())
+                imgData = urllib.urlopen(imgURL).read()
+                tag.images.set(ImageFrame.FRONT_COVER, imgData, "image/jpeg")
+
+                tag.save('{}/{}'.format(args.folderName, fname), version=ID3_DEFAULT_VERSION, encoding=ENCODING.lower())
 
         if i % nFilesPerPercent == 0:
             percent += percentIncrement
