@@ -39,7 +39,7 @@ for i, fname in enumerate(os.listdir(args.folderName)):
     tag = id3.Tag()
     tag.parse('{}/{}'.format(args.folderName, fname))
 
-    tag.album = tag.album + unichr(randint(1, 31))
+    tag.album = tag.album + unichr((i % 31) + 1)
 
     tag.save('{}/{}'.format(args.folderName, fname), version=ID3_DEFAULT_VERSION, encoding='utf-8')
 
