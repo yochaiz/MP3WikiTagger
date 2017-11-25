@@ -44,6 +44,8 @@ for i, fname in enumerate(os.listdir(args.folderName)):
         songName = fname[:-len(fileTypeSuffix)]
         if songName[-1] == ')':
             songName = songName[:songName.rfind('(')]
+        elif songName[-1] == '(':
+            songName = songName[:songName.rfind(')')]
 
         if is_ascii(songName):
             song = EnglishSongInfo(songName)
