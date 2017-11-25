@@ -64,18 +64,20 @@ class EnglishSongInfo(SongInfo):
         return ''
 
     def findArtist(self):
-        if len(self.xmlRoot._children) >= 3:
-            artistTr = self.xmlRoot._children[2]
-            if len(artistTr._children) > 0:
-                artistTh = artistTr._children[0]
-                artistStr = ''
-                for i in range(1, len(artistTh._children)):
-                    artist = artistTh._children[i]
-                    artistStr += artist.text
-                    if artist.tail is not None:
-                        artistStr += artist.tail
+        # if len(self.xmlRoot._children) >= 3:
+        #     artistTr = self.xmlRoot._children[2]
 
-                return artistStr
+        artistTr = self.xmlRoot.find("./tr[@class='description']")
+        if len(artistTr._children) > 0:
+            artistTh = artistTr._children[0]
+            artistStr = ''
+            for i in range(1, len(artistTh._children)):
+                artist = artistTh._children[i]
+                artistStr += artist.text
+                if artist.tail is not None:
+                    artistStr += artist.tail
+
+            return artistStr
 
         return ''
 
