@@ -9,12 +9,11 @@ class SongInfo:
     API_SERVICE_NAME = 'youtube'
     API_VERSION = 'v3'
     DEVELOPER_KEY = 'AIzaSyAizLaFmMUZe-EJJQ7JQ6LoyRFnVQbHS-M'
+    youtube = build(API_SERVICE_NAME, API_VERSION, developerKey=DEVELOPER_KEY)
 
     ENCODING = 'UTF-8'
 
     def __init__(self):
-        self.youtube = build(self.API_SERVICE_NAME, self.API_VERSION, developerKey=self.DEVELOPER_KEY)
-
         self.artist = self.findArtist()
         self.title = self.findTitle()
         self.album = self.findAlbum()

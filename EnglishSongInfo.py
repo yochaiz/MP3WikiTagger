@@ -7,12 +7,18 @@ from xml.etree import ElementTree
 class EnglishSongInfo(SongInfo):
     def __init__(self, songName):
         wikipedia.set_lang("en")
-        self.wikiObj = wikipedia.page(songName)
+        # self.wikiObj = wikipedia.page(songName)
+        results = wikipedia.search(songName, results=3)
 
-        resp = requests.get(self.wikiObj.url)
-        self.xmlRoot = ElementTree.fromstring(resp.content)
-        self.xmlRoot = self.xmlRoot.find(".//table[@class='infobox vevent']")
-        del resp
+        for res in results:
+            self.wikiObj = wikipedia.page(res)
+            resp = requests.get(self.wikiObj.url)
+            self.xmlRoot = ElementTree.fromstring(resp.content)
+            self.xmlRoot = self.xmlRoot.find(".//table[@class='infobox vevent']")
+
+            if self.xmlRoot is not None:
+                del resp
+                break
 
         SongInfo.__init__(self)
 
