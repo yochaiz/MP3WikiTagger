@@ -28,20 +28,50 @@ percentIncrement = max(1, 100 / nFiles)
 
 ENCODING = 'UTF-8'
 
+albumsDict = {}
+
 for i, fname in enumerate(os.listdir(args.folderName)):
     if fname.endswith(fileTypeSuffix) is False:
         continue
 
     sys.stdout.write('\r')
-    sys.stdout.write('Progress: [%-20s] %d%%    File:[%s]' % (progress, percent, fname))
+    sys.stdout.write('Reading tags: [%-20s] %d%%    File:[%s]' % (progress, percent, fname))
     sys.stdout.flush()
 
     tag = id3.Tag()
     tag.parse('{}/{}'.format(args.folderName, fname))
 
-    tag.album = tag.album + unichr((i % 31) + 1)
+    if tag.album not in albumsDict:
+        albumsDict[tag.album] = []
 
-    tag.save('{}/{}'.format(args.folderName, fname), version=ID3_DEFAULT_VERSION, encoding='utf-8')
+    albumsDict[tag.album].append((tag, fname))
+
+    if i % nFilesPerPercent == 0:
+        percent += percentIncrement
+    if i % nFilesPerProgressChar == 0:
+        progress += ('=' * progressIncrement)
+
+nFiles = len(albumsDict)
+progress = ''
+nFilesPerProgressChar = max(1, nFiles / progressBarLength)
+progressIncrement = max(1, progressBarLength / nFiles)
+percent = 0
+nFilesPerPercent = max(1, nFiles / 100)
+percentIncrement = max(1, 100 / nFiles)
+
+for album in albumsDict:
+    if len(albumsDict[album]) > 1:
+        i = 0
+        for item in albumsDict[album]:
+            tag = item[0]
+            fname = item[1]
+
+            tag.album = tag.album + unichr((i % 31) + 1)
+            tag.save('{}/{}'.format(args.folderName, fname), version=ID3_DEFAULT_VERSION, encoding='utf-8')
+
+    sys.stdout.write('\r')
+    sys.stdout.write('Modifying tags: [%-20s] %d%%    Album:[%s]' % (progress, percent, album))
+    sys.stdout.flush()
 
     if i % nFilesPerPercent == 0:
         percent += percentIncrement
