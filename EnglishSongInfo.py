@@ -20,7 +20,8 @@ class EnglishSongInfo(SongInfo):
                 del resp
                 break
 
-        SongInfo.__init__(self)
+        if self.xmlRoot is not None:
+            SongInfo.__init__(self)
 
     def findImageURL(self):
         img = self.xmlRoot.find(".//a[@class='image']")
@@ -74,7 +75,7 @@ class EnglishSongInfo(SongInfo):
         #     artistTr = self.xmlRoot._children[2]
 
         artistTr = self.xmlRoot.find("./tr[@class='description']")
-        if len(artistTr._children) > 0:
+        if (artistTr is not None) and (len(artistTr._children) > 0):
             artistTh = artistTr._children[0]
             artistStr = ''
             for i in range(1, len(artistTh._children)):

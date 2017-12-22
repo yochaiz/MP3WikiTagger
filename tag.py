@@ -27,6 +27,10 @@ for fname in os.listdir(args.folderName):
     if fname.endswith(fileTypeSuffix):
         nFiles += 1
 
+if nFiles <=0:
+    print('No files to tag')
+    exit(0)
+
 progress = ''
 progressBarLength = 20
 nFilesPerProgressChar = max(1, nFiles / progressBarLength)
@@ -51,6 +55,9 @@ for i, fname in enumerate(os.listdir(args.folderName)):
             song = EnglishSongInfo(songName)
         else:
             song = HebrewSongInfo(songName)
+
+        if song is None:
+            continue
 
         tag = id3.Tag()
         tag.parse('{}/{}'.format(args.folderName, fname))
