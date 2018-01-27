@@ -27,7 +27,7 @@ for fname in os.listdir(args.folderName):
     if fname.endswith(fileTypeSuffix):
         nFiles += 1
 
-if nFiles <=0:
+if nFiles <= 0:
     print('No files to tag')
     exit(0)
 
@@ -53,6 +53,9 @@ for i, fname in enumerate(os.listdir(args.folderName)):
 
         if is_ascii(songName):
             song = EnglishSongInfo(songName)
+
+            if song.xmlRoot is None:
+                continue
         else:
             song = HebrewSongInfo(songName)
 
