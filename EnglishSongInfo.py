@@ -104,4 +104,4 @@ class EnglishSongInfo(SongInfo):
                             elif thChild.text is not None:
                                 return thChild.text
 
-        return '{} - Single'.format(self.artist)
+        return '{} - Single'.format(self.artist.encode('ascii', 'ignore'))
