@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-import argparse
-import os
-import sys
+import argparse, os, sys
 from eyed3 import id3
 
 parser = argparse.ArgumentParser()
