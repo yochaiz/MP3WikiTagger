@@ -48,6 +48,7 @@ for i, fname in enumerate(listdir(args.folderName)):
     # update tag
     tag.artist = songFname[:idx].rstrip()
     tag.album_artist = tag.artist
+    tag.album = unicode('{} - Single'.format(tag.artist))
     tag.title = songFname[idx + 1:].lstrip()
 
     # remove comments

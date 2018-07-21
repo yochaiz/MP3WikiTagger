@@ -17,6 +17,9 @@ class EnglishSongInfo(SongInfo):
             self.xmlRoot = self.xmlRoot.find(".//table[@class='infobox vevent']")
 
             if self.xmlRoot is not None:
+                while self.xmlRoot.tag != 'tbody':
+                    self.xmlRoot = self.xmlRoot._children[0]
+
                 del resp
                 break
 
@@ -92,16 +95,17 @@ class EnglishSongInfo(SongInfo):
         trDesc = self.xmlRoot.findall(".//tr[@class='description']")
         for tr in trDesc:
             for trChild in tr._children:
-                if 'from the album ' == trChild.text:
-                    for thChild in trChild._children:
-                        if thChild.tag == 'i':
-                            if len(thChild._children) > 0:
-                                for iChild in thChild._children:
-                                    if iChild.tag == 'a':
-                                        # albumElement = thChild._children[0]
-                                        album = iChild.text
-                                        return album
-                            elif thChild.text is not None:
-                                return thChild.text
+                if trChild.text is not None:
+                    if trChild.text.startswith('from the '):
+                        for thChild in trChild._children:
+                            if thChild.tag == 'i':
+                                if len(thChild._children) > 0:
+                                    for iChild in thChild._children:
+                                        if iChild.tag == 'a':
+                                            # albumElement = thChild._children[0]
+                                            album = iChild.text
+                                            return album
+                                elif thChild.text is not None:
+                                    return thChild.text
 
         return '{} - Single'.format(self.artist.encode('ascii', 'ignore'))

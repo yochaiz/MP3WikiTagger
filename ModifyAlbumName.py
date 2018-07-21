@@ -66,7 +66,19 @@ for album in albumsDict:
             tag = item[0]
             fname = item[1]
 
+            if tag.album is None:
+                continue
+
             tag.album = tag.album + unichr((i % 31) + 1)
+
+            if 'IPLS' in tag.frame_set:
+                while len(tag.frame_set['IPLS']) > 0:
+                    del tag.frame_set['IPLS'][0]
+
+            if 'RGAD' in tag.frame_set:
+                while len(tag.frame_set['RGAD']) > 0:
+                    del tag.frame_set['RGAD'][0]
+
             tag.save('{}/{}'.format(args.folderName, fname), version=ID3_DEFAULT_VERSION, encoding='utf-8')
 
     sys.stdout.write('\r')
@@ -78,4 +90,4 @@ for album in albumsDict:
     if i % nFilesPerProgressChar == 0:
         progress += ('=' * progressIncrement)
 
-print('Done !')
+print('\nDone !')
