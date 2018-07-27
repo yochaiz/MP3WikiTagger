@@ -39,6 +39,8 @@ percent = 0
 nFilesPerPercent = max(1, nFiles / 100)
 percentIncrement = max(1, 100 / nFiles)
 
+frameSetKeys = ['IPLS', 'RGAD']
+
 for i, fname in enumerate(os.listdir(args.folderName)):
     if fname.endswith(fileTypeSuffix):
         sys.stdout.write('\r')
@@ -75,9 +77,10 @@ for i, fname in enumerate(os.listdir(args.folderName)):
         for c in tag.comments:
             tag.comments.remove(c.description)
 
-        if 'IPLS' in tag.frame_set:
-            while len(tag.frame_set['IPLS']) > 0:
-                del tag.frame_set['IPLS'][0]
+        for key in frameSetKeys:
+            if key in tag.frame_set:
+                while len(tag.frame_set[key]) > 0:
+                    del tag.frame_set[key][0]
 
         if song.getYear().isdigit():
             tag.recording_date = Date(int(song.getYear()))
