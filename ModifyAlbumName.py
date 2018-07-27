@@ -60,9 +60,9 @@ nFilesPerPercent = max(1, nFiles / 100)
 percentIncrement = max(1, 100 / nFiles)
 
 for album in albumsDict:
-    if len(albumsDict[album]) > 1:
-        i = 0
-        for item in albumsDict[album]:
+    elem = albumsDict[album]
+    if len(elem) > 1:
+        for i, item in enumerate(elem):
             tag = item[0]
             fname = item[1]
 
